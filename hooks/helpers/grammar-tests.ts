@@ -2,14 +2,14 @@ import { ApolloCache, FetchResult } from '@apollo/client';
 import _ from 'lodash';
 
 import { GET_ALL_GRAMMAR_TESTS_QUERY } from 'graphql/queries/grammar-tests';
+import { GrammarTestWithRelations } from '@prisma/client';
 
 export const handleAddGrammarRuleUpdate = (
   // biome-ignore lint/suspicious/noExplicitAny: apollo
   cache: ApolloCache<any>,
   // biome-ignore lint/suspicious/noExplicitAny: apollo
   res: Omit<FetchResult<any>, 'context'>,
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  input: any
+  input: GrammarTestWithRelations
 ) => {
   const isOptimisticResponse = res.data.addGrammarTest.id === '-1';
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>

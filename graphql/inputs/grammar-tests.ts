@@ -8,6 +8,7 @@ export const GrammarTestInput = gql`
       id
       value
       type
+      grammarTestId
     }
   }
 `;

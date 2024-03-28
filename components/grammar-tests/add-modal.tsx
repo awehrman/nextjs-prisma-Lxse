@@ -7,6 +7,11 @@ import { Button } from 'components/common';
 import PlusIcon from 'public/icons/plus.svg';
 import AutoWidthInput from 'components/parser/rule/auto-width-input';
 import useGrammarTests from 'hooks/use-grammar-tests';
+import {
+  ExpectedGrammarTestPreSave,
+  GrammarTestWithRelations,
+  GrammarTypeEnum
+} from '@prisma/client';
 
 // this is apparently for accessibility
 Modal.setAppElement('#main-app');
@@ -38,6 +43,17 @@ const getExpectationPlaceholder = (
   return value.length > 0 ? value : placeholder;
 };
 
+// TODO move
+const getOptimisticGrammarTestExpectation = (
+  index: number,
+  id = '-1'
+): ExpectedGrammarTestPreSave => ({
+  id: `OPTIMISTIC-${index}`,
+  grammarTestId: id,
+  type: 'INGREDIENT' as GrammarTypeEnum,
+  value: ''
+});
+
 const AddModal: React.FC = () => {
   const { addTest } = useGrammarTests();
   const [modalIsOpen, setIsOpen] = useState(false);
@@ -65,10 +81,11 @@ const AddModal: React.FC = () => {
   const placeholder = '1 cup fresh sliced, apples (cut into pieces)';
   const displaySizePlaceholder = !dirtyValue?.length ? placeholder : dirtyValue;
 
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  const onSubmit = (data: any) => {
-    console.log(data);
-    addTest(data);
+  const onSubmit = (data: GrammarTestWithRelations) => {
+    addTest({
+      ...data,
+      id: '-1'
+    });
   };
 
   function handleOpenModalOnClick() {
@@ -77,6 +94,17 @@ const AddModal: React.FC = () => {
 
   function handleCloseModalOnClick() {
     setIsOpen(false);
+  }
+
+  function handleAddNewExpectationClick(
+    _e: React.MouseEvent<HTMLButtonElement>,
+    index: number
+  ) {
+    const optimisticDefinition = getOptimisticGrammarTestExpectation(
+      index,
+      '-1'
+    );
+    append(optimisticDefinition);
   }
 
   return (
@@ -93,7 +121,6 @@ const AddModal: React.FC = () => {
         contentLabel="Add a New Grammar Test"
       >
         <Header>Add a New Grammar Test</Header>
-
         <form onSubmit={handleSubmit(onSubmit)}>
           <ReferenceLine>
             <label htmlFor="grammar-test-reference-line">Test sentence:</label>
@@ -117,7 +144,6 @@ const AddModal: React.FC = () => {
           <Fields>
             {fields.map((item, index) => (
               <Field key={item.id}>
-                {/* <label htmlFor={`expectation${index}`}>Expectation:</label> */}
                 <Controller
                   name={`expected[${index}].type`}
                   control={control}
@@ -161,7 +187,9 @@ const AddModal: React.FC = () => {
             <AddExpectationButton
               icon={<PlusIcon />}
               label="Add Expectation"
-              onClick={() => append({})}
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+                handleAddNewExpectationClick(e, fields.length)
+              }
             />
           </Fields>
           <SaveActions>

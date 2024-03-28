@@ -2,21 +2,46 @@ import { useMutation } from '@apollo/client';
 
 import { handleAddGrammarRuleUpdate } from './helpers/grammar-tests';
 import { ADD_GRAMMAR_TEST_MUTATION } from '../graphql/mutations/grammar-tests';
+import {
+  ExpectedGrammarTestResult,
+  GrammarTestWithRelations
+} from '@prisma/client';
 
 function useGrammarTests() {
   const [addGrammarTest] = useMutation(ADD_GRAMMAR_TEST_MUTATION);
 
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  function addTest(data: any): void {
+  function addTest(formData: GrammarTestWithRelations): void {
+    // add type names
+    const data = {
+      ...formData,
+      __typename: 'GrammarTest',
+      expected: formData.expected.map(
+        (expected: ExpectedGrammarTestResult) => ({
+          ...expected,
+          __typename: 'ExpectedGrammarTestResult'
+        })
+      )
+    };
+
+    // remove optimistic id
+    const input = {
+      reference: formData.reference,
+      expected: formData.expected.map(
+        ({ type, value }: ExpectedGrammarTestResult) => ({
+          type,
+          value
+        })
+      )
+    };
+
+    console.log({ input });
+
     addGrammarTest({
       optimisticResponse: {
-        addGrammarTest: {
-          ...data,
-          __typename: 'GrammarTest'
-        }
+        addGrammarTest: { ...data }
       },
-      variables: { input: data },
-      update: (cache, res) => handleAddGrammarRuleUpdate(cache, res, data)
+      variables: { input },
+      update: (cache, res) => handleAddGrammarRuleUpdate(cache, res, formData)
     });
   }
 

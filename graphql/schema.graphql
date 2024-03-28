@@ -84,6 +84,7 @@ type GrammarTest {
 }
 
 input GrammarTestDefinitionInput {
+  grammarTestId: String
   id: String
   type: GrammarTypeEnum
   value: String!

@@ -10,6 +10,7 @@ export const GrammarTestDefinitionInput = inputObjectType({
       type: 'GrammarTypeEnum'
     });
     t.nonNull.string('value');
+    t.nullable.string('grammarTestId');
   }
 });
 

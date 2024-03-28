@@ -6,7 +6,7 @@ import {
   RuleDispatch
 } from 'contexts/rule-context';
 import { ParserDispatch } from 'contexts/parser-context';
-import { DisplayContextTypes } from '../types';
+import { ParserDispatch, DisplayContextTypes } from '../types';
 
 type SaveRuleInputProps = CreateInputProps & {
   displayContext: DisplayContextTypes;

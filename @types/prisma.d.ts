@@ -1,4 +1,5 @@
 import '@prisma/client';
+import { ExpectedGrammarTestResult } from '@prisma/client';
 
 declare module '@prisma/client' {
   const noteMeta = Prisma.validator<Prisma.NoteArgs>()({
@@ -68,6 +69,31 @@ declare module '@prisma/client' {
     typeof ingredientWithRelations
   >;
 
+  const grammarTestWithRelations = Prisma.validator<Prisma.GrammarTestArgs>()({
+    include: {
+      expected: true
+    }
+  });
+
+  type GrammarTestWithRelations = Prisma.GrammarTestGetPayload<
+    typeof grammarTestWithRelations
+  >;
+
+  type ExpectedGrammarTestPreSave = Omit<
+    ExpectedGrammarTestResult,
+    'createdAt' | 'updatedAt'
+  >;
+
+  // TODO i'd like to move these to int values over strings
+  enum GrammarTypeEnum {
+    AMOUNT = 'AMOUNT',
+    COMMENTS = 'COMMENTS',
+    DESCRIPTORS = 'DESCRIPTORS',
+    INGREDIENT = 'INGREDIENT',
+    OTHER = 'OTHER',
+    UNIT = 'UNIT'
+  }
+
   type EvernoteNotesMetaResponse = {
     error?: string;
     notes: NoteMeta[];
@@ -84,6 +110,7 @@ declare module '@prisma/client' {
 
   type LocalCategoriesResponse = {
     error?: string;
+    // biome-ignore lint/suspicious/noExplicitAny: TODO
     categories: any;
   };
 
