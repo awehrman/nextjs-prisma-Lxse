@@ -81,10 +81,13 @@ const AddModal: React.FC = () => {
   const displaySizePlaceholder = !dirtyValue?.length ? placeholder : dirtyValue;
 
   const onSubmit = (data: GrammarTestWithRelations) => {
-    addTest({
-      ...data,
-      id: '-1'
-    });
+    addTest(
+      {
+        ...data,
+        id: '-1'
+      },
+      () => setIsOpen(false)
+    );
   };
 
   function handleOpenModalOnClick() {

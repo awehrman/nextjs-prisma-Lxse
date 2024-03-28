@@ -10,7 +10,7 @@ import {
 function useGrammarTests() {
   const [addGrammarTest] = useMutation(ADD_GRAMMAR_TEST_MUTATION);
 
-  function addTest(formData: GrammarTestWithRelations): void {
+  function addTest(formData: GrammarTestWithRelations, cb: () => void): void {
     // add type names
     const data = {
       ...formData,
@@ -39,7 +39,8 @@ function useGrammarTests() {
         addGrammarTest: { ...data }
       },
       variables: { input },
-      update: (cache, res) => handleAddGrammarRuleUpdate(cache, res, formData)
+      update: (cache, res) =>
+        handleAddGrammarRuleUpdate(cache, res, formData, cb)
     });
   }
 

@@ -21,7 +21,6 @@ export const addGrammarTest = async (
 ): Promise<GrammarTestWithRelations> => {
   const { prisma } = ctx;
   const { input } = args;
-  console.log('addGrammarTest', { input });
   const { reference, expected = [] } = input as GrammarTestWithRelations;
 
   const data: Prisma.GrammarTestCreateInput = {

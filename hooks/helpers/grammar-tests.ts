@@ -12,7 +12,8 @@ export const handleAddGrammarRuleUpdate = (
   cache: ApolloCache<any>,
   // biome-ignore lint/suspicious/noExplicitAny: apollo
   res: Omit<FetchResult<any>, 'context'>,
-  input: GrammarTestWithRelations
+  input: GrammarTestWithRelations,
+  cb: () => void
 ) => {
   const isOptimisticResponse =
     !res.data.addGrammarTest?.id || res.data.addGrammarTest.id === '-1';
@@ -61,4 +62,6 @@ export const handleAddGrammarRuleUpdate = (
     query: GET_ALL_GRAMMAR_TESTS_QUERY,
     data
   });
+
+  cb();
 };
