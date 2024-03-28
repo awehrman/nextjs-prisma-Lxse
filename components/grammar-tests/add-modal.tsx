@@ -29,17 +29,36 @@ const customStyles = {
   }
 };
 
+const DEFAULT_PLACEHOLDERS: Record<GrammarTypeEnum, string> = {
+  INGREDIENT: 'apples',
+  AMOUNT: 'one',
+  UNIT: 'cup',
+  DESCRIPTORS: 'fresh',
+  COMMENTS: ', sliced',
+  OTHER: '/'
+};
+
 // TODO move
 // TODO this is really similar to getFieldUpdates,
 // we should probably generalize these more generally for field array usage
 const getExpectationPlaceholder = (
   index: number,
-  formState: GrammarTestWithRelations,
-  placeholder: string
+  formState: GrammarTestWithRelations
 ) => {
   const { expected = [] } = formState;
-  const { value = '' } = expected?.[index] ?? {};
-  return value.length > 0 ? value : placeholder;
+  const { value = '', type = 'INGREDIENT' } = expected?.[index] ?? {};
+  return value.length > 0
+    ? value
+    : DEFAULT_PLACEHOLDERS[type as GrammarTypeEnum];
+};
+
+const getExpectationPlaceholderString = (
+  index: number,
+  formState: GrammarTestWithRelations
+) => {
+  const { expected = [] } = formState;
+  const { type = 'INGREDIENT' } = expected?.[index] ?? {};
+  return DEFAULT_PLACEHOLDERS[type as GrammarTypeEnum];
 };
 
 // TODO move
@@ -146,6 +165,7 @@ const AddModal: React.FC = () => {
           <Fields>
             {fields.map((item, index) => (
               <Field key={item.id}>
+                {/* TODO lets move this over to our register pattern for consistency */}
                 <Controller
                   name={`expected[${index}].type`}
                   control={control}
@@ -168,8 +188,7 @@ const AddModal: React.FC = () => {
                   defaultValue={''}
                   displaySizePlaceholder={getExpectationPlaceholder(
                     index,
-                    formUpdates,
-                    'apples'
+                    formUpdates
                   )}
                   isDisabled={false}
                   isSpellCheck={true}
@@ -180,8 +199,10 @@ const AddModal: React.FC = () => {
                   registerField={{
                     ...register(`expected[${index}].value`)
                   }}
-                  // TODO we should change this based on the selected type
-                  placeholder="apples"
+                  placeholder={getExpectationPlaceholderString(
+                    index,
+                    formUpdates
+                  )}
                   uniqueId={`expected[${index}].value`}
                 />
               </Field>
