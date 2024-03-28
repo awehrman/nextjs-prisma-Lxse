@@ -39,14 +39,14 @@ export const addGrammarTest = async (
           select: {
             id: true,
             type: true,
-            value: true
+            value: true,
+            grammarTestId: true
           }
         }
       }
     });
     response.id = result.id;
     response.expected = result.expected;
-    console.log({ result });
   } catch (e) {
     console.error(e);
     throw new Error('An error occurred in addGrammarTest.');

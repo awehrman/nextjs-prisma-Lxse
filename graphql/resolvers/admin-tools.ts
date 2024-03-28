@@ -49,7 +49,6 @@ export const resetParserRules = async (
     console.log({ err });
     response.error = `${err}`;
   }
-  console.log({ response });
   return response;
 };
 

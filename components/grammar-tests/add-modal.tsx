@@ -34,8 +34,7 @@ const customStyles = {
 // we should probably generalize these more generally for field array usage
 const getExpectationPlaceholder = (
   index: number,
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  formState: any,
+  formState: GrammarTestWithRelations,
   placeholder: string
 ) => {
   const { expected = [] } = formState;

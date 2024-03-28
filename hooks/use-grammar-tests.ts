@@ -34,8 +34,6 @@ function useGrammarTests() {
       )
     };
 
-    console.log({ input });
-
     addGrammarTest({
       optimisticResponse: {
         addGrammarTest: { ...data }

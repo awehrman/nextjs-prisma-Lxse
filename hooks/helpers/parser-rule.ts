@@ -1,5 +1,8 @@
 import { ApolloCache, ApolloQueryResult, FetchResult } from '@apollo/client';
-import Prisma from '@prisma/client';
+import Prisma, {
+  ExpectedGrammarTestResult,
+  GrammarTestWithRelations
+} from '@prisma/client';
 import _ from 'lodash';
 import peggy, { Parser } from 'peggy';
 
@@ -17,6 +20,7 @@ import {
 import { defaultTests } from 'constants/parser-tests';
 import { ParserRuleDefinition } from '@prisma/client';
 import { ParserRuleWithRelations } from '@prisma/client';
+import { ClientGrammarTestProps } from 'components/grammar-tests/types';
 
 export const removeTypename = (data: ParserRuleWithRelationsWithTypeName) => {
   const input = {
@@ -242,11 +246,8 @@ export const getStyledParserRule = (rule: Rule) => {
   return parserRuleString;
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-export const fetchTests = (): any[] => {
-  // TODO we'll ultimately want to grab these from the db
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  const tests: any[] = [...defaultTests];
+export const fetchLocalTests = (): GrammarTestWithRelations[] => {
+  const tests: GrammarTestWithRelations[] = [...defaultTests];
   return tests;
 };
 
@@ -288,15 +289,16 @@ export const compileParser = (grammar: string) => {
   };
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-export const runTests = (tests: any[], parser: Parser): any[] => {
+export const runTests = (
+  tests: GrammarTestWithRelations[],
+  parser: Parser
+): ClientGrammarTestProps[] => {
   for (const test of tests) {
     try {
       const details = parser.parse(test.reference);
       test.parsed = true;
       test.details = details;
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-      test.passed = test.expected.every((exp: any) => {
+      test.passed = test.expected.every((exp: ExpectedGrammarTestResult) => {
         const matchingDetail = details.values.find(
           (detail: DetailsProps) =>
             detail.type === exp.type &&

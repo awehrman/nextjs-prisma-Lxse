@@ -2,7 +2,10 @@ import { ApolloCache, FetchResult } from '@apollo/client';
 import _ from 'lodash';
 
 import { GET_ALL_GRAMMAR_TESTS_QUERY } from 'graphql/queries/grammar-tests';
-import { GrammarTestWithRelations } from '@prisma/client';
+import {
+  ExpectedGrammarTestResult,
+  GrammarTestWithRelations
+} from '@prisma/client';
 
 export const handleAddGrammarRuleUpdate = (
   // biome-ignore lint/suspicious/noExplicitAny: apollo
@@ -11,64 +14,51 @@ export const handleAddGrammarRuleUpdate = (
   res: Omit<FetchResult<any>, 'context'>,
   input: GrammarTestWithRelations
 ) => {
-  const isOptimisticResponse = res.data.addGrammarTest.id === '-1';
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  const tests: any | null = cache.readQuery({
+  const isOptimisticResponse =
+    !res.data.addGrammarTest?.id || res.data.addGrammarTest.id === '-1';
+  const grammarTests: GrammarTestWithRelations | null = cache.readQuery({
     query: GET_ALL_GRAMMAR_TESTS_QUERY
   });
+  let tests = [...(grammarTests?.tests ?? [])];
+  const optimisticExpectationIds: string[] = [];
+  if (isOptimisticResponse) {
+    tests.push({
+      id: '-1',
+      ...input,
+      expected: input.expected.map((expected: ExpectedGrammarTestResult) => ({
+        ...expected,
+        __typename: 'ExpectedGrammarTestResult'
+      })),
+      __typename: 'GrammarTest'
+    });
+  } else {
+    tests = tests.map((test: GrammarTestWithRelations) => {
+      if (test.id === '-1') {
+        return {
+          ...test,
+          expected: test.expected.map(
+            (def: ExpectedGrammarTestResult, index: number) => {
+              if (def.id.includes('OPTIMISTIC')) {
+                optimisticExpectationIds.push(def.id);
+                return {
+                  ...def,
+                  id: res.data.addGrammarTest.expected[index].id
+                };
+              }
+              return def;
+            }
+          ),
+          id: res.data.addGrammarTest.id
+        };
+      }
+      return test;
+    });
+  }
 
-  console.log({ tests });
+  const data = { tests };
 
-  // let grammarTests = [...(tests?.grammarTests ?? [])];
-  // const optimisticExpectationIds: string[] = [];
-  // if (isOptimisticResponse) {
-  //   grammarTests.push({
-  //     ...input,
-  //     definitions: input.definitions.map((def: ExpectedGrammarTestResult) => ({
-  //       ...def,
-  //       __typename: 'ExpectedGrammarTestResult'
-  //     })),
-  //     __typename: 'ParserRule'
-  //   });
-  // } else {
-  //   grammarTests = grammarTests.map((rule: ParserRuleWithRelations) => {
-  //     if (rule.id === '-1') {
-  //       return {
-  //         ...rule,
-  //         expected: rule.expected.map(
-  //           (def: ExpectedGrammarTestResult, index: number) => {
-  //             if (def.id.includes('OPTIMISTIC')) {
-  //               optimisticExpectationIds.push(def.id);
-  //               return {
-  //                 ...def,
-  //                 id: res.data.addGrammarTest.expected[index].id
-  //               };
-  //             }
-  //             return def;
-  //           }
-  //         ),
-  //         id: res.data.addGrammarTest.id
-  //       };
-  //     }
-  //     return rule;
-  //   });
-  // }
-
-  // const data = { grammarTests };
-  // cache.writeQuery({
-  //   query: GET_ALL_GRAMMAR_TESTS_QUERY,
-  //   data
-  // });
-  // TODO
-  // if (!isOptimisticResponse) {
-  //   // evict any optimism trails from the cache
-  //   cache.evict({
-  //     id: 'GrammarTest:-1'
-  //   });
-  //   for (const id of optimisticExpectationIds) {
-  //     cache.evict({
-  //       id: `GrammarTestExpectationId:${id}`
-  //     });
-  // }
-  // }
+  cache.writeQuery({
+    query: GET_ALL_GRAMMAR_TESTS_QUERY,
+    data
+  });
 };

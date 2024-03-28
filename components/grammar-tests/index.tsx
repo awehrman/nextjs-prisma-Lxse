@@ -7,12 +7,14 @@ import useParserRules from 'hooks/use-parser-rules';
 import AddModal from './add-modal';
 import Test from './test';
 import Errors from './errors';
+import { ClientGrammarTestProps } from './types';
 
 const Tests: React.FC = () => {
   const { rules = [], loading } = useParserRules();
   const { tests, errors = [] } = usePEGParser(rules, loading);
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  const numFailed = tests.filter((test: any) => test.passed).length;
+  const numFailed = tests.filter(
+    (test: ClientGrammarTestProps) => test.passed
+  ).length;
   const header = `Tests${tests.length ? ` (${numFailed} failed)` : ''}`;
 
   function renderTests() {
