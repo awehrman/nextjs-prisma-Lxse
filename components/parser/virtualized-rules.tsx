@@ -30,7 +30,6 @@ const VirtualizedRules: React.FC = () => {
   // TODO i hate all this naming
   const resize = useCallback((index: number, size: number) => {
     const allMounted = sizeMap?.current && listRef?.current;
-
     if (allMounted) {
       sizeMap.current = { ...sizeMap.current, [index]: size };
       if (listRef.current !== null) {
@@ -127,10 +126,9 @@ const StyledList = styled(List)`
 
 const RulesContent = styled.div`
   height: calc(100vh - 210px);
+  margin-bottom: 20px;
 `;
 
 const Message = styled.div`
   position: relative;
 `;
-
-const Loading = styled.div``;

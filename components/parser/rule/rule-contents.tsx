@@ -36,7 +36,7 @@ const RuleContents: React.FC<RecomputeRuleSizeProps> = ({
     rule: { definitions = [] }
   } = useParserRule(id);
   const { rules = [] } = useParserRules();
-
+  const rulesLength = rules.length;
   const methods = useForm<ParserRuleWithRelations>({
     defaultValues,
     mode: 'onBlur'
@@ -53,10 +53,22 @@ const RuleContents: React.FC<RecomputeRuleSizeProps> = ({
     height += RULE_BORDER_SIZE * 2;
     height +=
       displayContext === 'edit' ? RULE_BOTTOM_MARGIN * 4 : RULE_BOTTOM_MARGIN;
+    const lastItem = index === rulesLength - 1;
+    // TODO giving this a bit of a bump at the bottom
+    // i still need to look into this weird scroll behavior towards end of list
+    if (lastItem) {
+      height += 250;
+    }
     if (recomputeRuleSize !== undefined && height >= MIN_ROW_SIZE) {
       recomputeRuleSize(index, height);
     }
-  }, [index, heightWithoutMargins, displayContext, recomputeRuleSize]);
+  }, [
+    index,
+    heightWithoutMargins,
+    displayContext,
+    recomputeRuleSize,
+    rulesLength
+  ]);
 
   useEffect(() => {
     resizeRow();

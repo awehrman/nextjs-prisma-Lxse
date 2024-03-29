@@ -5,6 +5,7 @@ import styled, { ThemeContext } from 'styled-components';
 
 import { Button } from 'components/common';
 import PlusIcon from 'public/icons/plus.svg';
+import MagicIcon from 'public/icons/magic.svg';
 import AutoWidthInput from 'components/parser/rule/auto-width-input';
 import useGrammarTests from 'hooks/use-grammar-tests';
 import {
@@ -57,19 +58,20 @@ const getExpectationPlaceholderString = (
   formState: GrammarTestWithRelations
 ) => {
   const { expected = [] } = formState;
-  const { type = 'INGREDIENT' } = expected?.[index] ?? {};
+  const { type = 'OTHER' } = expected?.[index] ?? {};
   return DEFAULT_PLACEHOLDERS[type as GrammarTypeEnum];
 };
 
 // TODO move
 const getOptimisticGrammarTestExpectation = (
   index: number,
-  id = '-1'
+  id = '-1',
+  value = ''
 ): ExpectedGrammarTestPreSave => ({
   id: `OPTIMISTIC-${index}`,
   grammarTestId: id,
-  type: 'INGREDIENT' as GrammarTypeEnum,
-  value: ''
+  type: 'OTHER' as GrammarTypeEnum,
+  value
 });
 
 const AddModal: React.FC = () => {
@@ -83,7 +85,9 @@ const AddModal: React.FC = () => {
     register,
     handleSubmit,
     control,
-    formState: { isDirty }
+    formState: { isDirty },
+    setValue,
+    setFocus
   } = useForm({
     mode: 'onBlur'
   });
@@ -117,6 +121,20 @@ const AddModal: React.FC = () => {
     setIsOpen(false);
   }
 
+  function handleGenerateExpectations() {
+    const { reference = '' } = formUpdates;
+    const expectations = reference.split(' ');
+
+    for (const [index, expectation] of expectations.entries()) {
+      const optimisticDefinition = getOptimisticGrammarTestExpectation(
+        index,
+        '-1',
+        expectation
+      );
+      append(optimisticDefinition);
+    }
+  }
+
   function handleAddNewExpectationClick(
     _e: React.MouseEvent<HTMLButtonElement>,
     index: number
@@ -126,6 +144,47 @@ const AddModal: React.FC = () => {
       '-1'
     );
     append(optimisticDefinition);
+  }
+
+  function renderExpectations() {
+    return fields.map((item, index) => (
+      <Field key={item.id}>
+        {/* TODO lets move this over to our register pattern for consistency */}
+        <Controller
+          name={`expected[${index}].type`}
+          control={control}
+          defaultValue=""
+          render={({ field }) => (
+            <StyledSelect {...field} id={`expectation${index}`}>
+              <option value="INGREDIENT">Ingredient</option>
+              <option value="AMOUNT">Amount</option>
+              <option value="UNIT">Unit</option>
+              <option value="DESCRIPTORS">Descriptors</option>
+              <option value="COMMENTS">Comments</option>
+              <option value="OTHER">Other</option>
+            </StyledSelect>
+          )}
+        />
+        <ValueInput
+          aria-label="Value Input"
+          borderColor={altGreen}
+          className="grammar-test-definition-input"
+          defaultValue={''}
+          displaySizePlaceholder={getExpectationPlaceholder(index, formUpdates)}
+          isDisabled={false}
+          isSpellCheck={true}
+          // onBlur={(event: React.ChangeEvent<HTMLInputElement>) =>
+          //   onBlur(event)
+          // }
+          // onFocus={() => onFocus()}
+          registerField={{
+            ...register(`expected[${index}].value`)
+          }}
+          placeholder={getExpectationPlaceholderString(index, formUpdates)}
+          uniqueId={`expected[${index}].value`}
+        />
+      </Field>
+    ));
   }
 
   return (
@@ -161,52 +220,13 @@ const AddModal: React.FC = () => {
               registerField={{ ...register('reference') }}
               uniqueId="grammar-test-reference-line"
             />
+            <GenerateExpectations
+              icon={<MagicIcon />}
+              onClick={handleGenerateExpectations}
+            />
           </ReferenceLine>
           <Fields>
-            {fields.map((item, index) => (
-              <Field key={item.id}>
-                {/* TODO lets move this over to our register pattern for consistency */}
-                <Controller
-                  name={`expected[${index}].type`}
-                  control={control}
-                  defaultValue="INGREDIENT"
-                  render={({ field }) => (
-                    <StyledSelect {...field} id={`expectation${index}`}>
-                      <option value="INGREDIENT">Ingredient</option>
-                      <option value="AMOUNT">Amount</option>
-                      <option value="UNIT">Unit</option>
-                      <option value="DESCRIPTORS">Descriptors</option>
-                      <option value="COMMENTS">Comments</option>
-                      <option value="OTHER">Other</option>
-                    </StyledSelect>
-                  )}
-                />
-                <ValueInput
-                  aria-label="Value Input"
-                  borderColor={altGreen}
-                  className="grammar-test-definition-input"
-                  defaultValue={''}
-                  displaySizePlaceholder={getExpectationPlaceholder(
-                    index,
-                    formUpdates
-                  )}
-                  isDisabled={false}
-                  isSpellCheck={true}
-                  // onBlur={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  //   onBlur(event)
-                  // }
-                  // onFocus={() => onFocus()}
-                  registerField={{
-                    ...register(`expected[${index}].value`)
-                  }}
-                  placeholder={getExpectationPlaceholderString(
-                    index,
-                    formUpdates
-                  )}
-                  uniqueId={`expected[${index}].value`}
-                />
-              </Field>
-            ))}
+            {renderExpectations()}
             <AddExpectationButton
               icon={<PlusIcon />}
               label="Add Expectation"
@@ -230,6 +250,23 @@ const AddModal: React.FC = () => {
 };
 
 export default AddModal;
+
+const GenerateExpectations = styled(Button)`
+  border: 0;
+  padding: 0;
+  margin-left: 10px;
+  position: relative;
+  top: 5px;
+  padding: 2px;
+  background: transparent;
+  display: inline-block;
+  cursor: pointer;
+
+  svg {
+    display: inline-block;
+    width: 13px;
+  }
+`;
 
 const SaveActions = styled.div`
   float: right;
